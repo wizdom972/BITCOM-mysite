@@ -1,6 +1,7 @@
 package mysite.controller;
 
 import java.io.IOException;
+import java.util.List;
 
 import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.ServletException;
@@ -8,6 +9,8 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import mysite.dao.GuestbookDao;
+import mysite.vo.GuestbookVo;
 
 @WebServlet("/guestbook")
 public class GuestbookServlet extends HttpServlet {
@@ -15,8 +18,45 @@ public class GuestbookServlet extends HttpServlet {
 
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/views/guestbook/list.jsp");
-		rd.forward(request, response);
+		request.setCharacterEncoding("utf-8");
+
+		String action = request.getParameter("a");
+		
+		if ("insert".equals(action)) {
+			String name = request.getParameter("name");
+			String password = request.getParameter("pass");
+			String contents = request.getParameter("content");
+
+			GuestbookVo vo = new GuestbookVo();
+			vo.setName(name);
+			vo.setPassword(password);
+			vo.setContents(contents);
+
+			new GuestbookDao().insert(vo);
+
+			response.sendRedirect("/mysite02/guestbook");
+			
+		} else if ("deleteform".equals(action)) {
+			RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/views/guestbook/deleteform.jsp");
+			rd.forward(request, response);
+			
+		} else if ("delete".equals(action)) {
+			Long id = Long.parseLong(request.getParameter("id"));
+			String password = request.getParameter("password");
+
+			new GuestbookDao().deleteByIdAndPassword(id, password);
+
+			response.sendRedirect("/mysite02/guestbook");
+			
+		} else {
+			List<GuestbookVo> list = new GuestbookDao().findAll();
+			request.setAttribute("list", list);
+
+			RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/views/guestbook/list.jsp");
+			rd.forward(request, response);
+		}
+		
+		
 	}
 
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
