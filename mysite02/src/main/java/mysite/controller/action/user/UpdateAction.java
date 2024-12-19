@@ -49,9 +49,8 @@ public class UpdateAction implements Action {
 		int result = userDao.update(updatedUser);
 
 		if (result > 0) {
-			authUser.setName(name);
-			authUser.setGender(gender);
-			session.setAttribute("authUser", authUser);
+			// 세션 업데이트
+			session.setAttribute("authUser", updatedUser);
 
 			response.sendRedirect(request.getContextPath() + "/user?a=updateform");
 		} else {
