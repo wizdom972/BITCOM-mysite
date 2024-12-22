@@ -50,7 +50,8 @@ public class UpdateAction implements Action {
 
 		if (result > 0) {
 			// 세션 업데이트
-			session.setAttribute("authUser", updatedUser);
+			authUser.setName(name);
+			authUser.setGender(gender);
 
 			response.sendRedirect(request.getContextPath() + "/user?a=updateform");
 		} else {
