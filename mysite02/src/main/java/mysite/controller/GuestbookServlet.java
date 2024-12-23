@@ -12,8 +12,11 @@ import mysite.controller.action.guestbook.ListAction;
 public class GuestbookServlet extends ActionServlet {
 	private static final long serialVersionUID = 1L;
 
-	private Map<String, Action> mapAction = Map.of("add", new AddAction(), "deleteform", new DeleteFormAction(),
-			"delete", new DeleteAction());
+	private Map<String, Action> mapAction = Map.of(
+			"add", new AddAction(), 
+			"deleteform", new DeleteFormAction(),
+			"delete", new DeleteAction()
+			);
 
 	@Override
 	protected Action getAction(String actionName) {
