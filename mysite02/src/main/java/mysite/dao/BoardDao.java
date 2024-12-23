@@ -120,7 +120,7 @@ public class BoardDao {
 		return count;
 	}
 
-	public BoardVo findById(Long no) {
+	public BoardVo findByNo(Long no) {
 		BoardVo vo = null;
 
 		String sql = "SELECT no, title, content, author, hits, group_no, order_no, depth, reg_date "

@@ -36,7 +36,8 @@
 								<c:if test="${board.depth > 0}">
 									<img
 										src="${pageContext.request.contextPath}/assets/images/reply.png" />
-								</c:if> <a href="#">${board.title}</a>
+								</c:if> <a
+								href="${pageContext.request.contextPath}/board?a=view&no=${board.no}">${board.title}</a>
 							</td>
 							<td>${board.author}</td>
 							<td>${board.hits}</td>
