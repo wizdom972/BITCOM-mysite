@@ -8,14 +8,16 @@
 <head>
 <title>mysite</title>
 <meta http-equiv="content-type" content="text/html; charset=utf-8">
-<link href="/assets/css/board.css" rel="stylesheet" type="text/css">
+<link href="${pageContext.request.contextPath }/assets/css/board.css"
+	rel="stylesheet" type="text/css">
 </head>
 <body>
 	<div id="container">
 		<c:import url="/WEB-INF/views/includes/header.jsp" />
 		<div id="content">
 			<div id="board">
-				<form class="board-form" method="post" action="/board">
+				<form class="board-form" method="post"
+					action="${pageContext.request.contextPath}/board">
 					<input type="hidden" name="a" value="write">
 					<table class="tbl-ex">
 						<tr>
@@ -31,7 +33,8 @@
 						</tr>
 					</table>
 					<div class="bottom">
-						<a href="/board">취소</a> <input type="submit" value="등록">
+						<a href="${pageContext.request.contextPath}/board">취소</a> <input
+							type="submit" value="등록">
 					</div>
 				</form>
 			</div>
