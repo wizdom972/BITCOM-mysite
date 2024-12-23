@@ -5,7 +5,6 @@ import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
 
 public class ContextLoadListener implements ServletContextListener {
-
 	public void contextInitialized(ServletContextEvent sce) {
 		ServletContext sc = sce.getServletContext();
 		String contextConfigLocation = sc.getInitParameter("contextConfigLocation");
