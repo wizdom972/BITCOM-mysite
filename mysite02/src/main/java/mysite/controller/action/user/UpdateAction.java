@@ -53,7 +53,7 @@ public class UpdateAction implements Action {
 			authUser.setName(name);
 			authUser.setGender(gender);
 
-			response.sendRedirect(request.getContextPath() + "/user?a=updateform");
+			response.sendRedirect(request.getContextPath());
 		} else {
 			//response.sendRedirect(request.getContextPath() + "/user?a=updateform");
 		}
