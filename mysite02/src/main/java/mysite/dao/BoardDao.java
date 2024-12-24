@@ -224,7 +224,7 @@ public class BoardDao {
 	public int reply(BoardVo vo) {
 		int count = 0;
 		Connection conn = null;
-		
+
 		String updateOrderSql = "UPDATE board SET order_no = order_no + 1 WHERE group_no = ? AND order_no >= ?";
 		String insertReplySql = "INSERT INTO board (title, content, author, hits, group_no, order_no, depth, reg_date) "
 				+ "VALUES (?, ?, ?, 0, ?, ?, ?, NOW())";
@@ -242,7 +242,7 @@ public class BoardDao {
 				pstmt.setString(1, vo.getTitle());
 				pstmt.setString(2, vo.getContent());
 				pstmt.setString(3, vo.getAuthor());
-				pstmt.setLong(4, vo.getGroup_no()); 
+				pstmt.setLong(4, vo.getGroup_no());
 				pstmt.setLong(5, vo.getOrder_no());
 				pstmt.setLong(6, vo.getDepth());
 				count = pstmt.executeUpdate();
@@ -273,6 +273,61 @@ public class BoardDao {
 		}
 
 		return count;
+	}
+
+	public int getTotalCount() {
+		int totalCount = 0;
+
+		String sql = "SELECT COUNT(*) FROM board";
+
+		try (Connection conn = getConnection();
+				PreparedStatement psmt = conn.prepareStatement(sql);
+				ResultSet rs = psmt.executeQuery()) {
+
+			if (rs.next()) {
+				totalCount = rs.getInt(1);
+
+			}
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+		return totalCount;
+	}
+
+	public List<BoardVo> findBoardList(int currentPage, int pageSize) {
+		List<BoardVo> list = new ArrayList<>();
+		
+		String sql = "SELECT no, title, content, author, hits, group_no, order_no, depth, reg_date " + "FROM board "
+				+ "ORDER BY group_no DESC, order_no ASC, no DESC " + "LIMIT ?, ?";
+
+		try (Connection conn = getConnection(); PreparedStatement psmt = conn.prepareStatement(sql)) {
+			psmt.setInt(1, (currentPage - 1) * pageSize); 
+			psmt.setInt(2, pageSize); 
+
+			try (ResultSet rs = psmt.executeQuery()) {
+				
+				while (rs.next()) {
+					BoardVo board = new BoardVo();
+					board.setNo(rs.getLong("no"));
+					board.setTitle(rs.getString("title"));
+					board.setAuthor(rs.getString("author"));
+					board.setHits(rs.getLong("hits"));
+					board.setReg_date(rs.getString("reg_date"));
+					board.setGroup_no(rs.getLong("group_no"));
+					board.setOrder_no(rs.getLong("order_no"));
+					board.setDepth(rs.getLong("depth"));
+					
+					list.add(board);
+				}
+			}
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		return list;
 	}
 
 }
