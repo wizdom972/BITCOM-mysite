@@ -28,7 +28,7 @@ public class BoardDao {
 		List<BoardVo> list = new ArrayList<>();
 
 		String sql = "SELECT no, title, content, author, hits, group_no, order_no, depth, reg_date "
-				+ "FROM board ORDER BY group_no DESC, order_no ASC";
+				+ "FROM board ORDER BY group_no DESC, order_no ASC, no DESC";
 
 		try (Connection conn = getConnection();
 				PreparedStatement pstmt = conn.prepareStatement(sql);
@@ -36,7 +36,7 @@ public class BoardDao {
 
 			while (rs.next()) {
 				BoardVo vo = new BoardVo();
-				
+
 				vo.setNo(rs.getLong("no"));
 				vo.setTitle(rs.getString("title"));
 				vo.setContent(rs.getString("content"));
@@ -60,19 +60,29 @@ public class BoardDao {
 	public int insert(BoardVo vo) {
 		int count = 0;
 
-		String sql = "INSERT INTO board (title, content, author, hits, group_no, order_no, depth, reg_date) "
-				+ "VALUES (?, ?, ?, 0, ?, ?, ?, NOW())";
+		String getMaxGroupSql = "SELECT COALESCE(MAX(group_no), 0) + 1 FROM board";
+		String insertSql = "INSERT INTO board (title, content, author, hits, group_no, order_no, depth, reg_date) "
+				+ "VALUES (?, ?, ?, 0, ?, 1, 0, NOW())";
 
-		try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
+		try (Connection conn = getConnection()) {
+			Long newGroupNo = 0L;
 
-			pstmt.setString(1, vo.getTitle());
-			pstmt.setString(2, vo.getContent());
-			pstmt.setString(3, vo.getAuthor());
-			pstmt.setLong(4, vo.getGroup_no());
-			pstmt.setLong(5, vo.getOrder_no());
-			pstmt.setLong(6, vo.getDepth());
+			try (PreparedStatement pstmt = conn.prepareStatement(getMaxGroupSql); ResultSet rs = pstmt.executeQuery()) {
+				if (rs.next()) {
+					newGroupNo = rs.getLong(1);
+					System.out.println("New group_no: " + newGroupNo);
 
-			count = pstmt.executeUpdate();
+				}
+			}
+
+			try (PreparedStatement pstmt = conn.prepareStatement(insertSql)) {
+				pstmt.setString(1, vo.getTitle());
+				pstmt.setString(2, vo.getContent());
+				pstmt.setString(3, vo.getAuthor());
+				pstmt.setLong(4, newGroupNo);
+
+				count = pstmt.executeUpdate();
+			}
 
 		} catch (SQLException e) {
 			System.out.println("error: " + e);
@@ -170,4 +180,99 @@ public class BoardDao {
 
 		return count;
 	}
+
+	public List<BoardVo> search(String keyword) {
+		List<BoardVo> list = new ArrayList<>();
+
+		String sql = "SELECT no, title, content, author, hits, group_no, order_no, depth, reg_date " + "FROM board "
+				+ "WHERE title LIKE ? OR content LIKE ? " + "ORDER BY no DESC";
+
+		try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+			String searchKeyword = "%" + keyword + "%";
+
+			pstmt.setString(1, searchKeyword);
+			pstmt.setString(2, searchKeyword);
+
+			try (ResultSet rs = pstmt.executeQuery()) {
+
+				while (rs.next()) {
+
+					BoardVo vo = new BoardVo();
+
+					vo.setNo(rs.getLong("no"));
+					vo.setTitle(rs.getString("title"));
+					vo.setContent(rs.getString("content"));
+					vo.setAuthor(rs.getString("author"));
+					vo.setHits(rs.getLong("hits"));
+					vo.setGroup_no(rs.getLong("group_no"));
+					vo.setOrder_no(rs.getLong("order_no"));
+					vo.setDepth(rs.getLong("depth"));
+					vo.setReg_date(rs.getString("reg_date"));
+
+					list.add(vo);
+				}
+			}
+
+		} catch (SQLException e) {
+			System.out.println("error: " + e);
+		}
+
+		return list;
+	}
+
+	public int reply(BoardVo vo) {
+		int count = 0;
+		Connection conn = null;
+		
+		String updateOrderSql = "UPDATE board SET order_no = order_no + 1 WHERE group_no = ? AND order_no >= ?";
+		String insertReplySql = "INSERT INTO board (title, content, author, hits, group_no, order_no, depth, reg_date) "
+				+ "VALUES (?, ?, ?, 0, ?, ?, ?, NOW())";
+		try {
+			conn = getConnection();
+			conn.setAutoCommit(false);
+
+			try (PreparedStatement pstmt = conn.prepareStatement(updateOrderSql)) {
+				pstmt.setLong(1, vo.getGroup_no());
+				pstmt.setLong(2, vo.getOrder_no());
+				pstmt.executeUpdate();
+			}
+
+			try (PreparedStatement pstmt = conn.prepareStatement(insertReplySql)) {
+				pstmt.setString(1, vo.getTitle());
+				pstmt.setString(2, vo.getContent());
+				pstmt.setString(3, vo.getAuthor());
+				pstmt.setLong(4, vo.getGroup_no()); 
+				pstmt.setLong(5, vo.getOrder_no());
+				pstmt.setLong(6, vo.getDepth());
+				count = pstmt.executeUpdate();
+			}
+
+			conn.commit();
+
+		} catch (SQLException e) {
+			System.out.println("error: " + e);
+
+			if (conn != null) {
+				try {
+					conn.rollback(); // 트랜잭션 롤백
+
+				} catch (SQLException rollbackEx) {
+					System.out.println("rollback error: " + rollbackEx);
+				}
+			}
+
+		} finally {
+			if (conn != null) {
+				try {
+					conn.close(); // 연결 해제
+				} catch (SQLException closeEx) {
+					System.out.println("close error: " + closeEx);
+				}
+			}
+		}
+
+		return count;
+	}
+
 }

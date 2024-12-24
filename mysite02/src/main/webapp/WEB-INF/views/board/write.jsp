@@ -18,10 +18,19 @@
 			<div id="board">
 				<form class="board-form" method="post"
 					action="${pageContext.request.contextPath}/board">
-					<input type="hidden" name="a" value="write">
+
+					<input type="hidden" name="a"
+						value="${a == 'replyForm' ? 'reply' : 'write'}">
+
+					<c:if test="${a == 'replyForm'}">
+						<input type="hidden" name="group_no" value="${vo.group_no}">
+						<input type="hidden" name="order_no" value="${vo.order_no}">
+						<input type="hidden" name="depth" value="${vo.depth}">
+					</c:if>
+
 					<table class="tbl-ex">
 						<tr>
-							<th colspan="2">글쓰기</th>
+							<th colspan="2">${a == 'replyForm' ? '답글 쓰기' : '글쓰기'}</th>
 						</tr>
 						<tr>
 							<td class="label">제목</td>
@@ -33,8 +42,8 @@
 						</tr>
 					</table>
 					<div class="bottom">
-						<a href="${pageContext.request.contextPath}/board">취소</a> <input
-							type="submit" value="등록">
+						<a href="${pageContext.request.contextPath}/board">취소</a> 
+						<input type="submit" value="${a == 'replyForm' ? '답글 등록' : '등록'}">
 					</div>
 				</form>
 			</div>
