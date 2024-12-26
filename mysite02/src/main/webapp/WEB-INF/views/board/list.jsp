@@ -34,7 +34,7 @@
 					<c:forEach var="board" items="${boardList}" varStatus="status">
 						<tr>
 
-							<td>${(currentPage - 1) * 5 + status.index + 1}</td>
+							<td>${totalCount - ((currentPage - 1) * pageSize) - status.index}</td>
 							<td style="text-align:left; padding-left:${board.depth * 20}px">
 								<c:if test="${board.depth > 0}">
 									<img

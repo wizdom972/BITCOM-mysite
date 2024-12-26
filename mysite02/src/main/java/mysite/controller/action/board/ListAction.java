@@ -29,7 +29,7 @@ public class ListAction implements Action {
 
 		int totalPages = (int) Math.ceil((double) totalCount / pageSize);
 
-		int startPage = ((currentPage - 1) / 5) * 5 + 1;
+		int startPage = ((currentPage - 1) / pageSize) * pageSize + 1;
 		int endPage = Math.min(startPage + 4, totalPages);
 
 		request.setAttribute("boardList", boardList);
@@ -37,6 +37,8 @@ public class ListAction implements Action {
 		request.setAttribute("startPage", startPage);
 		request.setAttribute("endPage", endPage);
 		request.setAttribute("totalPages", totalPages);
+		request.setAttribute("totalCount", totalCount);
+		request.setAttribute("pageSize", pageSize);
 
 		RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/views/board/list.jsp");
 		rd.forward(request, response);
