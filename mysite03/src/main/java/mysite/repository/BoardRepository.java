@@ -303,8 +303,7 @@ public class BoardRepository {
 		List<BoardVo> list = new ArrayList<>();
 
 		String sql = "SELECT no, title, content, author, hits, date_format(reg_date,'%Y-%m-%d %h:%i:%s') as reg_date_format, group_no, order_no, depth "
-				+ "FROM board "
-				+ "ORDER BY group_no DESC, order_no ASC LIMIT ?,?;";
+				+ "FROM board " + "ORDER BY group_no DESC, order_no ASC LIMIT ?,?;";
 
 		try (Connection conn = getConnection(); PreparedStatement psmt = conn.prepareStatement(sql)) {
 			psmt.setInt(1, (currentPage - 1) * pageSize);
@@ -312,6 +311,113 @@ public class BoardRepository {
 
 			try (ResultSet rs = psmt.executeQuery()) {
 
+				while (rs.next()) {
+					BoardVo board = new BoardVo();
+					board.setNo(rs.getLong(1));
+					board.setTitle(rs.getString(2));
+					board.setContent(rs.getString(3));
+					board.setAuthor(rs.getString(4));
+					board.setHits(rs.getLong(5));
+					board.setReg_date(rs.getString(6));
+					board.setGroup_no(rs.getLong(7));
+					board.setOrder_no(rs.getLong(8));
+					board.setDepth(rs.getLong(9));
+
+					list.add(board);
+				}
+			}
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+		return list;
+	}
+
+	public BoardVo findByNoAndUserNo(Long no, Long userNo) {
+		BoardVo vo = null;
+		String sql = "SELECT no, title, content, author, hits, group_no, order_no, depth, reg_date FROM board WHERE no = ? AND user_no = ?";
+
+		try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
+			pstmt.setLong(1, no);
+			pstmt.setLong(2, userNo);
+
+			try (ResultSet rs = pstmt.executeQuery()) {
+				if (rs.next()) {
+					vo = new BoardVo();
+					vo.setNo(rs.getLong("no"));
+					vo.setTitle(rs.getString("title"));
+					vo.setContent(rs.getString("content"));
+					vo.setAuthor(rs.getString("author"));
+					vo.setHits(rs.getLong("hits"));
+					vo.setGroup_no(rs.getLong("group_no"));
+					vo.setOrder_no(rs.getLong("order_no"));
+					vo.setDepth(rs.getLong("depth"));
+					vo.setReg_date(rs.getString("reg_date"));
+				}
+			}
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+		return vo;
+	}
+
+	public void delete(Long no, Long userNo) {
+		String sql = "DELETE FROM board WHERE no = ? AND user_no = ?";
+
+		try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
+			pstmt.setLong(1, no);
+			pstmt.setLong(2, userNo);
+			
+			pstmt.executeUpdate();
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public int getTotalCount(String keyword) {
+		int totalCount = 0;
+
+		String sql = "SELECT COUNT(*) FROM board WHERE title LIKE ? OR content LIKE ?";
+
+		try (Connection conn = getConnection(); PreparedStatement psmt = conn.prepareStatement(sql)) {
+
+			String searchKeyword = "%" + keyword + "%";
+			psmt.setString(1, searchKeyword);
+			psmt.setString(2, searchKeyword);
+
+			try (ResultSet rs = psmt.executeQuery()) {
+				if (rs.next()) {
+					totalCount = rs.getInt(1);
+				}
+			}
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+		return totalCount;
+	}
+
+	public List<BoardVo> findAllByPageAndKeword(String keyword, int currentPage, int listSize) {
+		List<BoardVo> list = new ArrayList<>();
+
+		String sql = "SELECT no, title, content, author, hits, date_format(reg_date,'%Y-%m-%d %h:%i:%s') as reg_date_format,"
+				+ "group_no, order_no, depth FROM board WHERE title LIKE ? OR content LIKE ? "
+				+ "ORDER BY group_no DESC, order_no ASC LIMIT ?, ?";
+
+		try (Connection conn = getConnection(); PreparedStatement psmt = conn.prepareStatement(sql)) {
+
+			String searchKeyword = "%" + keyword + "%";
+			psmt.setString(1, searchKeyword);
+			psmt.setString(2, searchKeyword);
+			psmt.setInt(3, (currentPage - 1) * listSize);
+			psmt.setInt(4, listSize);
+
+			try (ResultSet rs = psmt.executeQuery()) {
 				while (rs.next()) {
 					BoardVo board = new BoardVo();
 					board.setNo(rs.getLong(1));

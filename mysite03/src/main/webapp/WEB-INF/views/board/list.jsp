@@ -17,9 +17,8 @@
 		<div id="content">
 			<div id="board">
 				<form id="search_form"
-					action="${pageContext.request.contextPath}/board" method="get">
-					<input type="hidden" name="a" value="search"> <input
-						type="text" id="kwd" name="kwd" value="${keyword}"> <input
+					action="${pageContext.request.contextPath}/board/list" method="get"> <input
+						type="text" id="keyword" name="keyword" value="${keyword}"> <input
 						type="submit" value="찾기">
 				</form>
 				<table class="tbl-ex">
@@ -31,7 +30,7 @@
 						<th>작성일</th>
 						<th>&nbsp;</th>
 					</tr>
-					<c:forEach var="board" items="${boardList}" varStatus="status">
+					<c:forEach var="board" items="${list}" varStatus="status">
 						<tr>
 
 							<td>${totalCount - ((currentPage - 1) * pageSize) - status.index}</td>

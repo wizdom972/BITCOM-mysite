@@ -22,7 +22,6 @@ pageContext.setAttribute("newLine", "\n");
 			<div id="guestbook">
 				<form action="${pageContext.request.contextPath }/guestbook"
 					method="post">
-					<input type="hidden" name="a" value="add">
 					<table>
 						<tr>
 							<td>이름</td>
@@ -48,7 +47,7 @@ pageContext.setAttribute("newLine", "\n");
 									<td>${vo.name }</td>
 									<td>${vo.regDate }</td>
 									<td><a
-										href="${pageContext.request.contextPath }/guestbook?a=deleteform&id=${vo.id }">삭제</a></td>
+										href="${pageContext.request.contextPath }/guestbook/delete?id=${vo.id}">삭제</a></td>
 								</tr>
 								<tr>
 									<td colspan=4>${fn:replace(vo.contents, newLine, "<br>") }
