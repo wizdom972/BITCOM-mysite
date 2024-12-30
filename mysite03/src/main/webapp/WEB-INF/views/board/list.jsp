@@ -51,7 +51,7 @@
 					<c:forEach var="board" items="${map.list}" varStatus="status">
 						<tr>
 							<!-- 게시글 번호: 가장 최신 글이 맨 위, 역순으로 매기기 -->
-							<td>${maxNumber - status.index}</td>
+							<td>${totalCount - (currentPage - 1) * pageSize - status.index}</td>
 
 							<!-- 제목(답글 depth만큼 들여쓰기) -->
 							<td style="text-align:left; padding-left:${board.depth * 20}px">
