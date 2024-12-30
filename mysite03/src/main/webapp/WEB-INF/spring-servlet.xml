@@ -30,8 +30,31 @@
 
 	<!-- 서블릿 컨테이너의 디폴트 서블릿 위임 핸들러 -->
 	<mvc:default-servlet-handler />
-	
-	<!-- /WEB-INF 밑으로도 접근할 수 있게 해주기  -->
-	<mvc:resources mapping="/assets/**" location="/WEB-INF/assets/" />
+
+	<!-- /WEB-INF 밑으로도 접근할 수 있게 해주기 -->
+	<mvc:resources mapping="/assets/**"
+		location="/WEB-INF/assets/" />
+
+	<!-- Interceptors -->
+	<mvc:interceptors>
+		<mvc:interceptor>
+			<mvc:mapping path="/user/auth" />
+			<bean class="mysite.security.LoginInterceptor"></bean>
+		</mvc:interceptor>
+
+		<mvc:interceptor>
+			<mvc:mapping path="/user/logout" />
+			<bean class="mysite.security.LogoutInterceptor"></bean>
+		</mvc:interceptor>
+
+		<mvc:interceptor>
+			<mvc:mapping path="/**" />
+			<mvc:exclude-mapping path="/user/auth"/>
+			<mvc:exclude-mapping path="/user/logout"/>
+			<mvc:exclude-mapping path="/assets/**"/>
+			<bean class="mysite.security.AuthInterceptor"></bean>
+		</mvc:interceptor>
+
+	</mvc:interceptors>
 
 </beans> 

@@ -8,7 +8,7 @@
 <head>
 <title>mysite</title>
 <meta http-equiv="content-type" content="text/html; charset=utf-8">
-<link href="${pageContext.request.contextPath }/assets/css/board.css"
+<link href="${pageContext.request.contextPath}/assets/css/board.css"
 	rel="stylesheet" type="text/css">
 </head>
 <body>
@@ -16,27 +16,44 @@
 		<c:import url="/WEB-INF/views/includes/header.jsp" />
 		<div id="content">
 			<div id="board">
+				<!-- 
+				   1) action="/board" -> "/board/modify" 로 변경 
+				   2) "a=modify" 파라미터는 사용하지 않으므로 제거 
+				-->
 				<form class="board-form" method="post"
-					action="${pageContext.request.contextPath }/board">
-					<input type='hidden' name="a" value="modify">
-					<input type='hidden' name="no" value="${vo.no}">
+					action="${pageContext.request.contextPath}/board/modify">
+					
+					<!-- 
+					    Controller의 modify(BoardVo boardVo)와 매핑될 필드 
+					    => @RequestParam("no") 자동 바인딩 or boardVo.setNo()
+					-->
+					<input type="hidden" name="no" value="${vo.no}">
+
 					<table class="tbl-ex">
 						<tr>
 							<th colspan="2">글수정</th>
 						</tr>
 						<tr>
 							<td class="label">제목</td>
-							<td><input type="text" name="title" value="${vo.title}"></td>
+							<td>
+								<!-- vo.title과 매핑 -->
+								<input type="text" name="title" value="${vo.title}">
+							</td>
 						</tr>
 						<tr>
 							<td class="label">내용</td>
-							<td><textarea id="content" name="content">${vo.content}</textarea>
+							<td>
+								<!-- vo.content와 매핑 -->
+								<textarea id="content" name="content">${vo.content}</textarea>
 							</td>
 						</tr>
 					</table>
+					
 					<div class="bottom">
-						<a href="${pageContext.request.contextPath }/board">취소</a> <input
-							type="submit" value="수정">
+						<!-- 취소하면 목록으로 돌아가기 -->
+						<a href="${pageContext.request.contextPath}/board">취소</a>
+						<!-- 폼 전송(수정 처리) -->
+						<input type="submit" value="수정">
 					</div>
 				</form>
 			</div>

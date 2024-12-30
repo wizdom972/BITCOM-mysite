@@ -36,7 +36,7 @@
 				<div class="bottom">
 					<a href="${pageContext.request.contextPath}/board">글목록</a>
 					<a href="${pageContext.request.contextPath}/board?a=modifyForm&no=${board.no}">글수정</a>
-					<a href="${pageContext.request.contextPath}/board?a=replyForm&group_no=${board.group_no}&order_no=${board.order_no}&depth=${board.depth}">글답글</a>
+					<a href="${pageContext.request.contextPath}/board/reply?group_no=${board.group_no}&order_no=${board.order_no}&depth=${board.depth}">글답글</a>
 				</div>
 			</div>
 		</div>
