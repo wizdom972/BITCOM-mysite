@@ -9,8 +9,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import mysite.security.Auth;
+import mysite.security.AuthUser;
 import mysite.service.BoardService;
 import mysite.vo.BoardVo;
+import mysite.vo.UserVo;
 
 @Controller
 @RequestMapping("/board")
@@ -44,6 +47,7 @@ public class BoardController {
 	 * [ 글쓰기 폼 ]
 	 *  - GET : 사용자가 "글쓰기" 버튼을 눌렀을 때, 폼 페이지로 이동
 	 */
+	@Auth
 	@RequestMapping(value="/write", method=RequestMethod.GET)
 	public String writeForm(Model model) {
 		model.addAttribute("mode", "write");
@@ -54,10 +58,18 @@ public class BoardController {
 	 * [ 글쓰기 처리 ]
 	 *  - POST : 사용자가 폼에서 제목/내용을 입력 후 "등록" 버튼을 눌렀을 때
 	 */
+	@Auth
 	@RequestMapping(value="/write", method=RequestMethod.POST)
-	public String write(BoardVo boardVo) {
+	public String write(BoardVo boardVo, @AuthUser UserVo authUser) {
+		
+		System.out.println(boardVo);
+		System.out.println(authUser);
+		
+		// 작성자 authUser의 이름으로 세팅
+		boardVo.setAuthor(authUser.getName());
+		
 		// DB에 새 글 등록
-		boardService.addContents(boardVo);
+		boardService.addContents(boardVo, authUser);
 		// 목록 페이지로 리다이렉트
 		return "redirect:/board";
 	}
@@ -89,9 +101,15 @@ public class BoardController {
      * [ 답글 등록 처리 ]
      * - POST /board/reply
      */
+    @Auth
     @RequestMapping(value="/reply", method=RequestMethod.POST)
-    public String replyPost(BoardVo boardVo) {
+    public String replyPost(BoardVo boardVo, @AuthUser UserVo authUser) {
         // 답글 추가 로직
+    	boardVo.setAuthor(authUser.getName());
+    	
+    	boardVo.setOrder_no(boardVo.getOrder_no() + 1);
+    	boardVo.setDepth(boardVo.getDepth() + 1);
+    	
         boardService.addReply(boardVo);
         return "redirect:/board";
     }
@@ -140,10 +158,9 @@ public class BoardController {
 	 *  - no + (userNo 가 필요하면 세션에서 가져와서 전달)
 	 */
 	@RequestMapping(value="/delete", method=RequestMethod.GET)
-	public String delete(@RequestParam("no") Long no) {
-		// 권한 체크가 필요하다면 userNo를 세션에서 받아서 아래처럼:
-		// boardService.deleteContents(no, userNoFromSession);
-		boardService.deleteContents(no, null);
+	public String delete(@RequestParam("no") Long no, @AuthUser UserVo authUser) {
+
+		boardService.deleteContents(no, authUser.getName());
 		
 		return "redirect:/board";
 	}

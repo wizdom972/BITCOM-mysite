@@ -18,9 +18,6 @@ public class BoardRepository {
     // 페이지당 게시물 개수 고정
     private static final int PAGE_SIZE = 5;
 
-    /**
-     * DB 연결
-     */
     private Connection getConnection() throws SQLException {
         Connection conn = null;
         try {
@@ -35,30 +32,23 @@ public class BoardRepository {
 
     /**
      * [1] 게시글 목록 조회 (검색 + 페이징)
-     *  - 한 페이지에 최대 PAGE_SIZE(=5)개의 게시물만 보여줌
-     *  - keyword가 null/빈문자열이면 검색조건 없이 전체 조회
-     *  - 정렬: group_no DESC, order_no ASC
+     *  - author 칼럼만 남김 (user_no 없음)
      */
     public List<BoardVo> findList(String keyword, int currentPage) {
         List<BoardVo> result = new ArrayList<>();
 
-        // 기본 SQL
         String sql = 
             " SELECT no, title, content, author, hits, " +
             "        group_no, order_no, depth, " +
             "        DATE_FORMAT(reg_date, '%Y-%m-%d %H:%i:%s') AS reg_date_format " +
             "   FROM board ";
 
-        // 검색 조건
         boolean hasKeyword = (keyword != null && !"".equals(keyword.trim()));
         if (hasKeyword) {
             sql += " WHERE title LIKE ? OR content LIKE ? ";
         }
 
-        // 정렬
         sql += " ORDER BY group_no DESC, order_no ASC ";
-
-        // LIMIT (고정 PAGE_SIZE)
         sql += " LIMIT ?, ? ";
 
         try (Connection conn = getConnection();
@@ -66,14 +56,12 @@ public class BoardRepository {
 
             int paramIndex = 1;
 
-            // 검색 키워드 바인딩
             if (hasKeyword) {
                 String searchKeyword = "%" + keyword + "%";
                 pstmt.setString(paramIndex++, searchKeyword);
                 pstmt.setString(paramIndex++, searchKeyword);
             }
 
-            // 페이징 바인딩: startIndex, PAGE_SIZE
             int startIndex = (currentPage - 1) * PAGE_SIZE;
             pstmt.setInt(paramIndex++, startIndex);
             pstmt.setInt(paramIndex++, PAGE_SIZE);
@@ -81,11 +69,10 @@ public class BoardRepository {
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
                     BoardVo vo = new BoardVo();
-
                     vo.setNo(rs.getLong("no"));
                     vo.setTitle(rs.getString("title"));
                     vo.setContent(rs.getString("content"));
-                    vo.setAuthor(rs.getString("author"));
+                    vo.setAuthor(rs.getString("author"));  // 문자열
                     vo.setHits(rs.getLong("hits"));
                     vo.setGroup_no(rs.getLong("group_no"));
                     vo.setOrder_no(rs.getLong("order_no"));
@@ -104,7 +91,6 @@ public class BoardRepository {
 
     /**
      * [2] 총 게시글 수(검색 포함)
-     *  - keyword 없으면 전체 count, 있으면 검색 count
      */
     public int getTotalCount(String keyword) {
         int totalCount = 0;
@@ -129,7 +115,6 @@ public class BoardRepository {
                     totalCount = rs.getInt(1);
                 }
             }
-
         } catch (SQLException e) {
             System.out.println("error:" + e);
         }
@@ -139,10 +124,9 @@ public class BoardRepository {
 
     /**
      * [3] 게시글 상세조회
-     *  - userNo가 있으면 (no + userNo)로 조회
-     *  - 없으면 no만 조회
+     *  - userNo 관련 코드 제거
      */
-    public BoardVo findByNo(Long no, Long userNo) {
+    public BoardVo findByNo(Long no) {
         BoardVo vo = null;
 
         String sql = 
@@ -150,17 +134,10 @@ public class BoardRepository {
             "   FROM board " +
             "  WHERE no = ? ";
 
-        if (userNo != null) {
-            sql += " AND user_no = ? ";
-        }
-
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setLong(1, no);
-            if (userNo != null) {
-                pstmt.setLong(2, userNo);
-            }
 
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
@@ -185,20 +162,18 @@ public class BoardRepository {
 
     /**
      * [4] 새 글(원글) 작성
-     *  - group_no: max(group_no) + 1
-     *  - order_no: 1
-     *  - depth: 0
+     *  - author(문자열), group_no, order_no=1, depth=0
      */
     public int insert(BoardVo vo) {
         int count = 0;
 
         String sqlMaxGroup = " SELECT COALESCE(MAX(group_no), 0) + 1 FROM board ";
         String sqlInsert = 
-            " INSERT INTO board (title, content, author, hits, group_no, order_no, depth, reg_date, user_no) " +
-            " VALUES (?, ?, ?, 0, ?, 1, 0, NOW(), ?)";
+            " INSERT INTO board (title, content, author, hits, group_no, order_no, depth, reg_date) " +
+            " VALUES (?, ?, ?, 0, ?, 1, 0, NOW())";
 
         try (Connection conn = getConnection()) {
-            // 1) 새 group_no 구하기
+            // 1) group_no 구하기
             Long newGroupNo = 0L;
             try (PreparedStatement pstmt = conn.prepareStatement(sqlMaxGroup);
                  ResultSet rs = pstmt.executeQuery()) {
@@ -211,10 +186,9 @@ public class BoardRepository {
             try (PreparedStatement pstmt = conn.prepareStatement(sqlInsert)) {
                 pstmt.setString(1, vo.getTitle());
                 pstmt.setString(2, vo.getContent());
-                pstmt.setString(3, vo.getAuthor());
+                pstmt.setString(3, vo.getAuthor());  // <== 로그인 사용자의 이름 or 이메일
                 pstmt.setLong(4, newGroupNo);
-                // user_no가 vo에 있다고 가정(필드명에 따라 변경)
-                pstmt.setLong(5, 0L); 
+
                 count = pstmt.executeUpdate();
             }
 
@@ -227,9 +201,8 @@ public class BoardRepository {
 
     /**
      * [5] 답글 작성
-     *  - 1) 같은 group_no 에서 order_no >= vo.order_no 인 것 +1
-     *  - 2) INSERT
-     *  - 트랜잭션
+     *  - 1) order_no 재정렬
+     *  - 2) INSERT (author=로그인 사용자)
      */
     public int reply(BoardVo vo) {
         int count = 0;
@@ -241,15 +214,15 @@ public class BoardRepository {
             "    AND order_no >= ? ";
 
         String sqlInsertReply = 
-            " INSERT INTO board (title, content, author, hits, group_no, order_no, depth, reg_date, user_no) " +
-            " VALUES (?, ?, ?, 0, ?, ?, ?, NOW(), ?)";
+            " INSERT INTO board (title, content, author, hits, group_no, order_no, depth, reg_date) " +
+            " VALUES (?, ?, ?, 0, ?, ?, ?, NOW())";
 
         Connection conn = null;
         try {
             conn = getConnection();
             conn.setAutoCommit(false);
 
-            // 1) order_no 밀기
+            // 1) order_no +1
             try (PreparedStatement pstmt = conn.prepareStatement(sqlUpdateOrder)) {
                 pstmt.setLong(1, vo.getGroup_no());
                 pstmt.setLong(2, vo.getOrder_no());
@@ -260,11 +233,10 @@ public class BoardRepository {
             try (PreparedStatement pstmt = conn.prepareStatement(sqlInsertReply)) {
                 pstmt.setString(1, vo.getTitle());
                 pstmt.setString(2, vo.getContent());
-                pstmt.setString(3, vo.getAuthor());
+                pstmt.setString(3, vo.getAuthor()); // 현재 로그인 사용자
                 pstmt.setLong(4, vo.getGroup_no());
                 pstmt.setLong(5, vo.getOrder_no());
                 pstmt.setLong(6, vo.getDepth());
-                pstmt.setLong(7, 0L);
                 count = pstmt.executeUpdate();
             }
 
@@ -280,11 +252,8 @@ public class BoardRepository {
             }
         } finally {
             if (conn != null) {
-                try {
-                    conn.close();
-                } catch (SQLException ex) {
-                    System.out.println("close error:" + ex);
-                }
+                try { conn.close(); } 
+                catch (SQLException ex) { System.out.println("close error:" + ex); }
             }
         }
 
@@ -319,27 +288,21 @@ public class BoardRepository {
 
     /**
      * [7] 게시글 삭제
-     *  - userNo != null -> no+userNo 모두 매칭
-     *  - null -> no만 매칭
+     *  "자신이 쓴 글만 삭제" -> "DELETE FROM board WHERE no=? AND author=?"
      */
-    public int delete(Long no, Long userNo) {
+    public int delete(Long no, String author) {
         int count = 0;
 
         String sql = 
             " DELETE FROM board " +
-            "  WHERE no = ? ";
-
-        if (userNo != null) {
-            sql += " AND user_no = ? ";
-        }
+            "   WHERE no = ? " +
+            "     AND author = ? ";
 
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setLong(1, no);
-            if (userNo != null) {
-                pstmt.setLong(2, userNo);
-            }
+            pstmt.setString(2, author);
 
             count = pstmt.executeUpdate();
         } catch (SQLException e) {
