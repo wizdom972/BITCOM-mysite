@@ -1,11 +1,6 @@
 package mysite.repository;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-
-import javax.sql.DataSource;
+import java.util.Map;
 
 import org.apache.ibatis.session.SqlSession;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,118 +12,20 @@ import mysite.vo.UserVo;
 public class UserRepository {
 	@Autowired
 	private SqlSession sqlSession;
-	@Autowired
-	private DataSource dataSource;
 
 	public int insert(UserVo vo) {
-		int count = 0;
-
-		try (Connection conn = dataSource.getConnection();
-				PreparedStatement pstmt = conn.prepareStatement("insert into user values(null, ?, ?, ?, ?, now(), 'USER')");) {
-			pstmt.setString(1, vo.getName());
-			pstmt.setString(2, vo.getEmail());
-			pstmt.setString(3, vo.getPassword());
-			pstmt.setString(4, vo.getGender());
-
-			count = pstmt.executeUpdate();
-		} catch (SQLException e) {
-			System.out.println("error:" + e);
-		}
-
-		return count;
+		return sqlSession.insert("user.insert", vo);
 	}
 
 	public UserVo findByEmailAndPassword(String email, String password) {
-		UserVo userVo = null;
-
-		try (Connection conn = dataSource.getConnection();
-				PreparedStatement pstmt = conn
-						.prepareStatement("select id, name, role from user where email=? and password=?");) {
-			pstmt.setString(1, email);
-			pstmt.setString(2, password);
-
-			ResultSet rs = pstmt.executeQuery();
-			if (rs.next()) {
-				Long id = rs.getLong(1);
-				String name = rs.getString(2);
-				String role = rs.getString(3);
-
-				userVo = new UserVo();
-				userVo.setId(id);
-				userVo.setName(name);
-				userVo.setRole(role);
-			}
-
-			rs.close();
-		} catch (SQLException e) {
-			System.out.println("error:" + e);
-		}
-
-		return userVo;
+		return sqlSession.selectOne("user.findByEmailAndPassword", Map.of("email", email, "password", password));
 	}
 
 	public UserVo findById(Long id) {
-		UserVo userVo = null;
-
-		try (Connection conn = dataSource.getConnection();
-				PreparedStatement pstmt = conn.prepareStatement("select * from user where id=?");) {
-			pstmt.setLong(1, id);
-
-			ResultSet rs = pstmt.executeQuery();
-			if (rs.next()) {
-				id = rs.getLong(1);
-				String name = rs.getString(2);
-				String email = rs.getString(3);
-				String password = rs.getString(4);
-				String gender = rs.getString(5);
-				String joinDate = rs.getDate(6).toString();
-
-				userVo = new UserVo();
-				userVo.setId(id);
-				userVo.setName(name);
-				userVo.setEmail(email);
-				userVo.setPassword(password);
-				userVo.setGender(gender);
-				userVo.setJoinDate(joinDate);
-			}
-
-			rs.close();
-		} catch (SQLException e) {
-			System.out.println("error:" + e);
-		}
-
-		return userVo;
+		return sqlSession.selectOne("user.findById", id);
 	}
 
 	public int update(UserVo vo) {
-
-		int count = 0;
-
-		try (Connection conn = dataSource.getConnection();) {
-			String sql = "update user set name=?, gender=?";
-			if (vo.getPassword() != null && !vo.getPassword().isEmpty()) {
-				sql += ", password=?";
-			}
-			sql += " where id=?";
-
-			try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-				pstmt.setString(1, vo.getName());
-				pstmt.setString(2, vo.getGender());
-
-				if (vo.getPassword() != null && !vo.getPassword().isEmpty()) {
-					pstmt.setString(3, vo.getPassword());
-					pstmt.setLong(4, vo.getId());
-				} else {
-					pstmt.setLong(3, vo.getId());
-				}
-
-				count = pstmt.executeUpdate();
-			}
-		} catch (SQLException e) {
-			System.out.println("error:" + e);
-		}
-
-		return count;
-
+		return sqlSession.update("user.update", vo);
 	}
 }
