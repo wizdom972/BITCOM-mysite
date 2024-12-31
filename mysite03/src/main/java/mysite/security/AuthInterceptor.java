@@ -30,7 +30,7 @@ public class AuthInterceptor implements HandlerInterceptor {
 
 		// 4. Handler Method에서 @Auth가 없으면 클래스(타입)에서 가져오기
 		if (auth == null) {
-			auth = handlerMethod.getBeanType().getAnnotation(Auth.class);
+			auth = handlerMethod.getMethod().getDeclaringClass().getAnnotation(Auth.class);
 		}
 
 		// 5. @Auth가 없으면
