@@ -1,67 +1,83 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:aop="http://www.springframework.org/schema/aop"
+<beans
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:aop="http://www.springframework.org/schema/aop" 
 	xmlns="http://www.springframework.org/schema/beans"
-	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:p="http://www.springframework.org/schema/p" 
 	xmlns:context="http://www.springframework.org/schema/context"
 	xmlns:mvc="http://www.springframework.org/schema/mvc"
 	xsi:schemaLocation="http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd
 	http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
 	http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
-
-	<context:annotation-config />
-	<context:component-scan
-		base-package="mysite.controller" />
-
-
-	<!-- ViewResolver 설정 -->
-	<bean id="viewResolver"
-		class="org.springframework.web.servlet.view.InternalResourceViewResolver">
-		<property name="viewClass"
-			value="org.springframework.web.servlet.view.JstlView" />
-		<property name="prefix" value="/WEB-INF/views/" />
-		<property name="suffix" value=".jsp" />
-		<property name="order" value="1" />
-	</bean>
-
-	<!-- validator, conversionService, messageConverter를 자동으로 등록 -->
+	
+	<!-- Validator, ConversionService, MessageConverter를 자동으로 등록 -->
 	<mvc:annotation-driven>
+		<!-- Argument Resolvers -->
 		<mvc:argument-resolvers>
-			<bean class="mysite.security.AuthUserHandlerMethodArgumentResolver"/>
+			<bean class="mysite.security.AuthUserHandlerMethodArgumentResolver" />
 		</mvc:argument-resolvers>
 	</mvc:annotation-driven>
 
-	<!-- 서블릿 컨테이너의 디폴트 서블릿 위임 핸들러 -->
+	<!-- DefaultServlet Handler -->	
 	<mvc:default-servlet-handler />
+	
+	<!-- Message Source -->
+	<bean id="messageSource" class="org.springframework.context.support.ResourceBundleMessageSource">
+	    <property name="basenames">
+	       <list>
+	          <value>messages/message</value>
+	       </list>
+	    </property>
+	</bean>
 
-	<!-- /WEB-INF 밑으로도 접근할 수 있게 해주기 -->
-	<mvc:resources mapping="/assets/**"
-		location="/WEB-INF/assets/" />
-
-
+	<!-- Locale Resolver -->
+	<bean id="localeResolver" class="org.springframework.web.servlet.i18n.CookieLocaleResolver">
+	    <constructor-arg index="0" value="lang" />
+	    <property name="cookieHttpOnly" value="false" />
+	</bean>
+		
+	<!-- mvc url-resource mapping -->
+	<mvc:resources mapping="/assets/upload-images/**" location="file:/mysite-uploads" />
+	
+	<!-- Multipart Resolver -->
+	<bean id="multipartResolver" class="org.springframework.web.multipart.support.StandardServletMultipartResolver" />
+	
 	<!-- Interceptors -->
 	<mvc:interceptors>
 		<mvc:interceptor>
 			<mvc:mapping path="/user/auth" />
-			<bean class="mysite.security.LoginInterceptor"></bean>
+			<bean class="mysite.security.LoginInterceptor" />
 		</mvc:interceptor>
-
 		<mvc:interceptor>
 			<mvc:mapping path="/user/logout" />
-			<bean class="mysite.security.LogoutInterceptor"></bean>
+			<bean class="mysite.security.LogoutInterceptor" />
 		</mvc:interceptor>
-
 		<mvc:interceptor>
 			<mvc:mapping path="/**" />
-			<mvc:exclude-mapping path="/user/auth" />
-			<mvc:exclude-mapping path="/user/logout" />
-			<mvc:exclude-mapping path="/assets/**" />
-			<bean class="mysite.security.AuthInterceptor"></bean>
+			<mvc:exclude-mapping path="/user/auth"/>
+			<mvc:exclude-mapping path="/user/logout"/>
+			<mvc:exclude-mapping path="/assets/**"/>
+			<bean class="mysite.security.AuthInterceptor" />
 		</mvc:interceptor>
-
+		<mvc:interceptor>
+			<mvc:mapping path="/**" />
+			<mvc:exclude-mapping path="/assets/**"/>
+			<bean class="mysite.interceptor.SiteInterceptor" />
+		</mvc:interceptor>
 	</mvc:interceptors>
-
-
-
-</beans> 
+	
+	
+	<!-- View Resolver -->
+	<bean id="viewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+	   <property name="viewClass" value="org.springframework.web.servlet.view.JstlView" />
+	   <property name="prefix" value="/WEB-INF/views/" />
+	   <property name="suffix" value=".jsp" />
+	</bean>
+	
+	<!--  ApplicationContextEventListener -->
+	<bean class="mysite.event.ApplicationContextEventListener" />
+		
+	<context:annotation-config />
+	<context:component-scan base-package="mysite.controller, mysite.exception" />
+</beans>

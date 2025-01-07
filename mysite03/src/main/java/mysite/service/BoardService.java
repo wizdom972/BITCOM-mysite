@@ -9,105 +9,87 @@ import org.springframework.stereotype.Service;
 
 import mysite.repository.BoardRepository;
 import mysite.vo.BoardVo;
-import mysite.vo.UserVo;
 
 @Service
 public class BoardService {
-
+	private static final int LIST_SIZE = 5; //리스팅되는 게시물의 수
+	private static final int PAGE_SIZE = 5; //페이지 리스트의 페이지 수
+	
 	@Autowired
 	private BoardRepository boardRepository;
-
-	/**
-	 * 게시글 등록(원글 작성)
-	 */
-	public void addContents(BoardVo vo, UserVo authUser) {
-		vo.setAuthor(authUser.getName());
-		boardRepository.insert(vo);
-	}
-
-	// [답글 등록]
-	public void addReply(BoardVo vo) {
-		boardRepository.reply(vo);
-	}
-
-	/**
-	 * 게시글 상세조회 (조회수 증가 포함) - userNo가 필요 없는 경우(단순 조회)
-	 */
-	public BoardVo getContents(Long no) {
-		// 1) 글 가져오기
-		BoardVo board = boardRepository.findByNo(no);
-
-		// 2) 조회수 증가
-		if (board != null) {
-			boardRepository.incrementHit(no);
-			// 조회수 최신화
-			board.setHits(board.getHits() + 1);
+	
+	public void addContents(BoardVo boardVo) {
+		if(boardVo.getGroupNo() != null) {
+			boardRepository.updateOrderNo(boardVo.getGroupNo(), boardVo.getOrderNo());
 		}
-
-		return board;
+		
+		boardRepository.insert(boardVo);
+	}
+	
+	public BoardVo getContents(Long id) {
+		BoardVo boardVo = boardRepository.findById(id);
+		
+		if(boardVo != null) {
+			boardRepository.updateHit(id);
+		}
+		
+		return boardVo;
 	}
 
-	/**
-	 * 게시글 수정
-	 */
-	public void updateContents(BoardVo vo) {
-		// 제목, 내용 등을 DB에서 업데이트
-		boardRepository.update(vo);
+	public BoardVo getContents(Long id, Long userId) {
+		BoardVo boardVo = boardRepository.findByIdAndUserId(id, userId);
+		return boardVo;
 	}
-
-	/**
-	 * 게시글 삭제 - userNo가 있으면 권한 체크( no + userNo ) - userNo가 null이면 no만 매칭 (권한 체크 없이)
-	 */
-	public void deleteContents(Long id, String author) {
-		boardRepository.delete(id, author);
+	
+	public void modifyContents(BoardVo boardVo) {
+		boardRepository.update(boardVo);
 	}
-
-	/**
-	 * 게시글 목록 조회(페이징 + 검색) - 메서드 시그니처 고정: 리턴타입/이름 변경 불가 - 파라미터는 자유롭게 조정 가능
-	 * 
-	 * 예시로 currentPage, keyword를 함께 받아서 처리
-	 */
+	
+	public void deleteContents(Long boardNo, Long userNo) {
+		boardRepository.delete(boardNo, userNo);
+	}
+	
 	public Map<String, Object> getContentsList(int currentPage, String keyword) {
-		// 1) 전체 게시글 수 (검색어 반영)
-		int totalCount = boardRepository.getTotalCount(keyword);
-
-		// 2) 현재 페이지 목록 불러오기 (페이지당 5개)
-		List<BoardVo> list = boardRepository.findList(keyword, currentPage);
-
-		// 3) 총 페이지 수 계산 (한 페이지당 5개)
-		final int PAGE_SIZE = 5; // (Repo에서도 5개지만, Service 단에서도 명시)
-		int totalPageCount = (int) Math.ceil((double) totalCount / PAGE_SIZE);
-		int currentBlock = ( (currentPage - 1) / PAGE_SIZE ) * PAGE_SIZE + 1; 
-		int startPage = currentBlock;
-		int endPage = startPage + PAGE_SIZE - 1;
 		
-		if(endPage > totalPageCount) {
-		    endPage = totalPageCount;
+		//1. 페이징을 위한 기본 데이터 계산
+		int totalCount = boardRepository.getTotalCount(keyword); 
+		int pageCount = (int)Math.ceil((double)totalCount / LIST_SIZE);
+		int blockCount = (int)Math.ceil((double)pageCount / PAGE_SIZE);
+		int currentBlock = (int)Math.ceil((double)currentPage / PAGE_SIZE);
+		
+		//2. 파라미터 page 값  검증
+		if(currentPage > pageCount) {
+			currentPage = pageCount;
+			currentBlock = (int)Math.ceil((double)currentPage / PAGE_SIZE);
+		}		
+		
+		if(currentPage < 1) {
+			currentPage = 1;
+			currentBlock = 1;
 		}
 		
-		if(currentPage>totalPageCount) currentPage=totalPageCount;
-
-		// 4) Service → Controller → JSP 로 넘길 정보 구성
-		Map<String, Object> map = new HashMap<>();
+		//3. view에서 페이지 리스트를 렌더링 하기위한 데이터 값 계산
+		int beginPage = currentBlock == 0 ? 1 : (currentBlock - 1) * PAGE_SIZE + 1;
+		int prevPage = (currentBlock > 1 ) ? (currentBlock - 1) * PAGE_SIZE : 0;
+		int nextPage = (currentBlock < blockCount) ? currentBlock * PAGE_SIZE + 1 : 0;
+		int endPage = (nextPage > 0) ? (beginPage - 1) + LIST_SIZE : pageCount;
+		
+		//4. 리스트 가져오기
+		List<BoardVo> list = boardRepository.findAllByPageAndKeword(keyword, currentPage, LIST_SIZE);
+		
+		//5. 리스트 정보를 맵에 저장
+		Map<String, Object> map = new HashMap<String, Object>();
+		
 		map.put("list", list);
-		map.put("currentPage", currentPage);
 		map.put("totalCount", totalCount);
-		map.put("totalPageCount", totalPageCount);
-		map.put("keyword", keyword);
-		map.put("startPage", startPage);
+		map.put("listSize", LIST_SIZE);
+		map.put("currentPage", currentPage);
+		map.put("beginPage", beginPage);
 		map.put("endPage", endPage);
-		map.put("pageSize", PAGE_SIZE);
+		map.put("prevPage", prevPage);
+		map.put("nextPage", nextPage);
+		map.put("keyword", keyword);
 
 		return map;
 	}
-
-	/**
-	 * 메서드 시그니처와 리턴타입을 바꿀 수 없다고 했으므로 파라미터 없는 오버로드 버전도 예시로 만들어둘 수 있음 (만약 꼭 필요 없다면
-	 * 삭제하셔도 됩니다)
-	 */
-	public Map<String, Object> getContentsList() {
-		// 디폴트로 1페이지, 검색어 없는 상태
-		return getContentsList(1, "");
-	}
-
 }

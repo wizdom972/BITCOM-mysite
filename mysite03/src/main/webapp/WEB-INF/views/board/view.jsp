@@ -1,14 +1,13 @@
 <%@ taglib uri="jakarta.tags.core" prefix="c"%>
 <%@ taglib uri="jakarta.tags.fmt" prefix="fmt"%>
 <%@ taglib uri="jakarta.tags.functions" prefix="fn"%>
-<% pageContext.setAttribute("ENTER", "\n"); %>
-<%@ page language="java" contentType="text/html; charset=UTF-8"
-	pageEncoding="UTF-8"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<% pageContext.setAttribute( "newLine", "\n" ); %>
 <!DOCTYPE html>
 <html>
 <head>
 <title>mysite</title>
-<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta http-equiv="contents-type" content="text/html; charset=utf-8">
 <link href="${pageContext.request.contextPath }/assets/css/board.css" rel="stylesheet" type="text/css">
 </head>
 <body>
@@ -22,21 +21,25 @@
 					</tr>
 					<tr>
 						<td class="label">제목</td>
-						<td>${board.title}</td>
+						<td>${boardVo.title }</td>
 					</tr>
 					<tr>
 						<td class="label">내용</td>
 						<td>
 							<div class="view-content">
-								 ${fn:replace(board.content, ENTER, '<br>')}
+							${fn:replace(boardVo.contents, newLine, "<br>") }					
 							</div>
 						</td>
 					</tr>
 				</table>
 				<div class="bottom">
-					<a href="${pageContext.request.contextPath}/board">글목록</a>
-					<a href="${pageContext.request.contextPath}/board?a=modifyForm&no=${board.no}">글수정</a>
-					<a href="${pageContext.request.contextPath}/board/reply?group_no=${board.group_no}&order_no=${board.order_no}&depth=${board.depth}">글답글</a>
+					<a href="${pageContext.request.contextPath }/board?p=${param.p }&kwd=${param.kwd }">글목록</a>
+					<c:if test="${ not empty authUser }">
+						<a href="${pageContext.request.contextPath }/board/reply/${boardVo.id }?p=${param.p }&kwd=${param.kwd }">답글 달기</a>
+						<c:if test="${authUser.id == boardVo.userId }">
+							<a href="${pageContext.request.contextPath }/board/modify/${boardVo.id }?p=${param.p }&kwd=${param.kwd }">글수정</a>
+						</c:if>
+					</c:if>
 				</div>
 			</div>
 		</div>

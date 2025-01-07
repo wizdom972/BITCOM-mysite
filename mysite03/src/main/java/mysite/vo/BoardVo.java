@@ -1,93 +1,82 @@
 package mysite.vo;
 
 public class BoardVo {
-	private Long no;
+	private Long Id;
 	private String title;
-	private String content;
-	private String author;
-	private Long hits;
-	private Long group_no;
-	private Long order_no;
-	private Long depth;
-	private String reg_date;
+	private String contents;
+	private String regDate;
+	private Integer hit;
+	private Integer groupNo;
+	private Integer orderNo;
+	private Integer depth;
+	private Long userId;
+	private String userName;
 
-	public Long getNo() {
-		return no;
+	public Long getId() {
+		return Id;
 	}
-
-	public void setNo(Long no) {
-		this.no = no;
+	public void setId(Long id) {
+		Id = id;
 	}
-
 	public String getTitle() {
 		return title;
 	}
-
 	public void setTitle(String title) {
 		this.title = title;
 	}
-
-	public String getContent() {
-		return content;
+	public String getContents() {
+		return contents;
 	}
-
-	public void setContent(String content) {
-		this.content = content;
+	public void setContents(String contents) {
+		this.contents = contents;
 	}
-
-	public String getAuthor() {
-		return author;
+	public String getRegDate() {
+		return regDate;
 	}
-
-	public void setAuthor(String author) {
-		this.author = author;
+	public void setRegDate(String regDate) {
+		this.regDate = regDate;
 	}
-
-	public Long getHits() {
-		return hits;
+	public Integer getHit() {
+		return hit;
 	}
-
-	public void setHits(Long hits) {
-		this.hits = hits;
+	public void setHit(Integer hit) {
+		this.hit = hit;
 	}
-
-	public Long getGroup_no() {
-		return group_no;
+	public Integer getGroupNo() {
+		return groupNo;
 	}
-
-	public void setGroup_no(Long group_no) {
-		this.group_no = group_no;
+	public void setGroupNo(Integer groupNo) {
+		this.groupNo = groupNo;
 	}
-
-	public Long getOrder_no() {
-		return order_no;
+	public Integer getOrderNo() {
+		return orderNo;
 	}
-
-	public void setOrder_no(Long order_no) {
-		this.order_no = order_no;
+	public void setOrderNo(Integer orderNo) {
+		this.orderNo = orderNo;
 	}
-
-	public Long getDepth() {
+	public Integer getDepth() {
 		return depth;
 	}
-
-	public void setDepth(Long depth) {
+	public void setDepth(Integer depth) {
 		this.depth = depth;
 	}
-
-	public String getReg_date() {
-		return reg_date;
+	public Long getUserId() {
+		return userId;
 	}
-
-	public void setReg_date(String reg_date) {
-		this.reg_date = reg_date;
+	public void setUserId(Long userId) {
+		this.userId = userId;
 	}
-
+	public String getUserName() {
+		return userName;
+	}
+	public void setUserName(String userName) {
+		this.userName = userName;
+	}
+	
 	@Override
 	public String toString() {
-		return "BoardVo [no=" + no + ", title=" + title + ", content=" + content + ", author=" + author + ", hits="
-				+ hits + ", group_no=" + group_no + ", order_no=" + order_no + ", depth=" + depth + ", reg_date="
-				+ reg_date + "]";
+		return "BoardVo [Id=" + Id + ", title=" + title + ", contents=" + contents + ", regDate=" + regDate + ", hit="
+				+ hit + ", groupNo=" + groupNo + ", orderNo=" + orderNo + ", depth=" + depth + ", userId=" + userId
+				+ ", userName=" + userName + "]";
 	}
-
 }

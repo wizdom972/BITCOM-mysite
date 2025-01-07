@@ -1,6 +1,5 @@
 package mysite.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,18 +14,22 @@ import mysite.vo.UserVo;
 @RequestMapping("/user")
 public class UserController {
 
-	@Autowired
 	private UserService userService;
+	
+	public UserController(UserService userService) {
+		this.userService = userService;
+	}
 
-	@RequestMapping(value = "/join", method = RequestMethod.GET)
+	@RequestMapping(value="/join", method=RequestMethod.GET)
 	public String join() {
 		return "user/join";
 	}
 
-	@RequestMapping(value = "/join", method = RequestMethod.POST)
+	@RequestMapping(value="/join", method=RequestMethod.POST)
 	public String join(UserVo userVo) {
-
+		System.out.println(userVo);
 		userService.join(userVo);
+		System.out.println(userVo);
 
 		return "redirect:/user/joinsuccess";
 	}
@@ -36,30 +39,27 @@ public class UserController {
 		return "user/joinsuccess";
 	}
 
-	@RequestMapping(value = "/login", method = RequestMethod.GET)
+	@RequestMapping(value="/login", method=RequestMethod.GET)
 	public String login() {
 		return "user/login";
 	}
-
+	
 	@Auth
-	@RequestMapping("/update")
+	@RequestMapping(value="/update", method=RequestMethod.GET)
 	public String update(@AuthUser UserVo authUser, Model model) {
 		UserVo userVo = userService.getUser(authUser.getId());
-
+		
 		model.addAttribute("vo", userVo);
-
 		return "user/update";
 	}
 
 	@Auth
-	@RequestMapping(value = "/update", method = RequestMethod.POST)
+	@RequestMapping(value="/update", method=RequestMethod.POST)
 	public String update(@AuthUser UserVo authUser, UserVo userVo) {
 		userVo.setId(authUser.getId());
 		userService.update(userVo);
-
-		// 세션 업데이트 해주기
-		authUser.setName(userVo.getName());
 		
+		authUser.setName(userVo.getName());
 		return "redirect:/user/update";
 	}
 }

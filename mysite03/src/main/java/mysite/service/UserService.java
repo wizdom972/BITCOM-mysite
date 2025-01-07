@@ -1,6 +1,5 @@
 package mysite.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import mysite.repository.UserRepository;
@@ -8,9 +7,11 @@ import mysite.vo.UserVo;
 
 @Service
 public class UserService {
-
-	@Autowired
 	private UserRepository userRepository;
+	
+	public UserService(UserRepository userRepository) {
+		this.userRepository = userRepository;
+	}
 
 	public void join(UserVo userVo) {
 		userRepository.insert(userVo);
@@ -19,7 +20,7 @@ public class UserService {
 	public UserVo getUser(String email, String password) {
 		return userRepository.findByEmailAndPassword(email, password);
 	}
-	
+
 	public UserVo getUser(Long id) {
 		return userRepository.findById(id);
 	}
