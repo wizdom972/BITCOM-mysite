@@ -1,25 +1,13 @@
 package mysite.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.servlet.LocaleResolver;
-
-import jakarta.servlet.http.HttpServletRequest;
-import mysite.service.SiteService;
 
 @Controller
 public class MainController {
-	private final SiteService siteService;
-	
-	public MainController(SiteService siteService) {
-		this.siteService = siteService;	
-	}
-	
-	@RequestMapping({"/", "/main"})
-	public String main(Model model, HttpServletRequest request) {
-		model.addAttribute("siteVo", siteService.getSite());
+	@RequestMapping({ "/", "/main" })
+	public String main(Model model) {
 		return "main/index";
 	}
 }
