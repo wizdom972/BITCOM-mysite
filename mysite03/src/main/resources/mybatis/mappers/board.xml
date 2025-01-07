@@ -9,7 +9,7 @@
 				  into board
 				values (null,
 						#{title },
-						#{contents },
+						#{content },
 						0,	
 						(select ifnull(max(group_no), 0) + 1 from board a ),
 						1, 
@@ -24,7 +24,7 @@
 				  into board
 				values (null,
 						#{title },
-						#{contents },
+						#{content },
 						0,
 						#{groupNo },
 						#{orderNo }, 
@@ -40,9 +40,9 @@
 		<![CDATA[
 		update board 
 		   set title=#{title },
-		       contents=#{contents }
-		 where no=#{id }
-		   and user_id=#{userid }		
+		       content=#{content }
+		 where no=#{no }
+		   and user_id=#{userId }		
 		]]>
 	</update>
 
@@ -50,7 +50,7 @@
 		<![CDATA[
 		delete
 		  from board 
-		 where no = #{id }
+		 where no = #{no }
 		   and user_id = #{userId }
 		]]>
 	</delete>
@@ -59,14 +59,14 @@
 		<![CDATA[
 		select	no,
 				title,
-				contents,
+				content,
 				hits,
 				group_no as groupNo,
 				order_no as orderNo,
 				depth,
 				user_id as userId
 		   from board
-		  where no = #{id }		
+		  where no = #{no}		
 		]]>
 	</select>
 
@@ -75,10 +75,10 @@
 		<![CDATA[
 		select	no,
 				title,
-				contents
+				content
 		   from board
-		  where no = #{id }
-		    and user_no = #{userId }		
+		  where no = #{no}
+		    and user_id = #{userId }		
 		]]>
 	</select>
 
@@ -111,7 +111,7 @@
 				  		 a.user_id as userId
 				  	from board a, user b
 				   where a.user_id = b.id
-				     and (title like '%${keyword }%' or contents like '%${keyword }%')
+				     and (title like '%${keyword }%' or content like '%${keyword }%')
 				order by group_no desc, order_no asc
 				   limit #{startIndex }, #{size }				
 				]]>
@@ -148,7 +148,7 @@
 				<![CDATA[
 				select count(*) 
 				  from board
-				 where (title like '%${_parameter }%' or contents like '%${_parameter  }%') 
+				 where (title like '%${_parameter }%' or content like '%${_parameter  }%') 
 				]]>
 			</otherwise>
 		</choose>

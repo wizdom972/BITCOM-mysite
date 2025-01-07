@@ -33,28 +33,28 @@ public class BoardRepository {
         return sqlSession.update("board.update", boardVo);
     }
 
-    public int delete(Long id, Long userId) {
+    public int delete(Long no, Long userId) {
         Map<String, Long> map = new HashMap<String, Long>();
-        map.put("id", id);
+        map.put("no", no);
         map.put("userId", userId);
 
         return sqlSession.delete("board.delete", map);
     }
 
-    public BoardVo findById(Long id) {
-        return sqlSession.selectOne("board.findById", id);
+    public BoardVo findById(Long no) {
+        return sqlSession.selectOne("board.findById", no);
     }
 
-    public BoardVo findByIdAndUserId(Long id, Long userid) {
+    public BoardVo findByIdAndUserId(Long no, Long userId) {
         Map<String, Long> map = new HashMap<String, Long>();
-        map.put("id", id);
-        map.put("userId", userid);
+        map.put("no", no);
+        map.put("userId", userId);
         
         return sqlSession.selectOne("board.findByIdAndUserId", map);
     }
 
-    public int updateHit(Long id) {
-        return sqlSession.update("board.updateHit", id);
+    public int updateHit(Long no) {
+        return sqlSession.update("board.updateHit", no);
     }
 
     public int updateOrderNo(Integer groupNo, Integer orderNo) {

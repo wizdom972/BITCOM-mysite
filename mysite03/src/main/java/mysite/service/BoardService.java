@@ -26,18 +26,18 @@ public class BoardService {
 		boardRepository.insert(boardVo);
 	}
 	
-	public BoardVo getContents(Long id) {
-		BoardVo boardVo = boardRepository.findById(id);
+	public BoardVo getContents(Long no) {
+		BoardVo boardVo = boardRepository.findById(no);
 		
 		if(boardVo != null) {
-			boardRepository.updateHit(id);
+			boardRepository.updateHit(no);
 		}
 		
 		return boardVo;
 	}
 
-	public BoardVo getContents(Long id, Long userId) {
-		BoardVo boardVo = boardRepository.findByIdAndUserId(id, userId);
+	public BoardVo getContents(Long no, Long userId) {
+		BoardVo boardVo = boardRepository.findByIdAndUserId(no, userId);
 		return boardVo;
 	}
 	
@@ -45,8 +45,8 @@ public class BoardService {
 		boardRepository.update(boardVo);
 	}
 	
-	public void deleteContents(Long boardNo, Long userNo) {
-		boardRepository.delete(boardNo, userNo);
+	public void deleteContents(Long boardNo, Long userId) {
+		boardRepository.delete(boardNo, userId);
 	}
 	
 	public Map<String, Object> getContentsList(int currentPage, String keyword) {

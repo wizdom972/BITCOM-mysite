@@ -1,6 +1,7 @@
 package mysite.controller;
 
 import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -38,28 +39,28 @@ public class BoardController {
 		return "board/index";
 	}
 	
-	@RequestMapping("/view/{id}")
-	public String view(@PathVariable("id") Long id, Model model) {
-		BoardVo boardVo = boardService.getContents(id);
+	@RequestMapping("/view/{no}")
+	public String view(@PathVariable("no") Long no, Model model) {
+		BoardVo boardVo = boardService.getContents(no);
 		model.addAttribute("boardVo", boardVo);
 		return "board/view";
 	}
 	
 	@Auth
-	@RequestMapping("/delete/{id}")
+	@RequestMapping("/delete/{no}")
 	public String delete(
 		@AuthUser UserVo authUser,
-		@PathVariable("id") Long boardId,
+		@PathVariable("no") Long boardNo,
 		@RequestParam(value="p", required=true, defaultValue="1") Integer page,
 		@RequestParam(value="kwd", required=true, defaultValue="") String keyword) {		
-		boardService.deleteContents(boardId, authUser.getId());
+		boardService.deleteContents(boardNo, authUser.getId());
 		return "redirect:/board?p=" + page + "&kwd=" + WebUtil.encodeURL(keyword, "UTF-8");
 	}
 	
 	@Auth
-	@RequestMapping("/modify/{id}")	
-	public String modify(@AuthUser UserVo authUser, @PathVariable("id") Long id, Model model) {
-		BoardVo boardVo = boardService.getContents(id, authUser.getId());
+	@RequestMapping("/modify/{no}")	
+	public String modify(@AuthUser UserVo authUser, @PathVariable("no") Long no, Model model) {
+		BoardVo boardVo = boardService.getContents(no, authUser.getId());
 		model.addAttribute("boardVo", boardVo);
 		return "board/modify";
 	}
@@ -73,7 +74,7 @@ public class BoardController {
 		@RequestParam(value="kwd", required=true, defaultValue="") String keyword) {		
 		boardVo.setUserId(authUser.getId());
 		boardService.modifyContents(boardVo);
-		return "redirect:/board/view/" + boardVo.getId() + 
+		return "redirect:/board/view/" + boardVo.getNo() + 
 				"?p=" + page + 
 				"&kwd=" + WebUtil.encodeURL( keyword, "UTF-8" );
 	}
@@ -98,9 +99,9 @@ public class BoardController {
 	}
 
 	@Auth
-	@RequestMapping(value="/reply/{id}")	
-	public String reply(@PathVariable("id") Long id, Model model) {
-		BoardVo boardVo = boardService.getContents(id);
+	@RequestMapping(value="/reply/{no}")	
+	public String reply(@PathVariable("no") Long no, Model model) {
+		BoardVo boardVo = boardService.getContents(no);
 		boardVo.setOrderNo(boardVo.getOrderNo() + 1);
 		boardVo.setDepth(boardVo.getDepth() + 1);
 		
