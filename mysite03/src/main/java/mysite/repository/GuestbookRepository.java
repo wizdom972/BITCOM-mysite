@@ -11,13 +11,17 @@ import mysite.vo.GuestbookVo;
 @Repository
 public class GuestbookRepository {
 	private SqlSession sqlSession;
-	
+
 	public GuestbookRepository(SqlSession sqlSession) {
 		this.sqlSession = sqlSession;
 	}
-	
+
 	public List<GuestbookVo> findAll() {
 		return sqlSession.selectList("guestbook.findAll");
+	}
+
+	public GuestbookVo findById(Long id) {
+		return sqlSession.selectOne("guestbook.findById", id);
 	}
 
 	public int insert(GuestbookVo vo) {
@@ -26,5 +30,5 @@ public class GuestbookRepository {
 
 	public int deleteByIdAndPassword(Long id, String password) {
 		return sqlSession.delete("guestbook.deleteByIdAndPassword", Map.of("id", id, "password", password));
-	}	
+	}
 }
