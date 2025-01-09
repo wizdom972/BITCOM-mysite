@@ -13,15 +13,16 @@
 			<![CDATA[
 			select last_insert_id() from dual
 			]]>
-		</selectKey>	
+		</selectKey>
 	</insert>
-	
-	<select id="findByEmailAndPassword" parameterType="map" resultType="uservo">
+
+	<select id="findByEmailAndPassword" parameterType="map"
+		resultType="uservo">
 		<![CDATA[
 		select id, name, role 
 		  from user
 		 where email=#{email} and password=#{password}
-		]]>	
+		]]>
 	</select>
 
 	<select id="findById" parameterType="long" resultType="uservo">
@@ -29,7 +30,15 @@
 		select id, name, email, gender
 		  from user
 		 where id = #{id}
-		]]>	
+		]]>
+	</select>
+
+	<select id="findByEmail" parameterType="string" resultType="uservo">
+		<![CDATA[
+		select id, name, email, gender
+		  from user
+		 where email = #{email}
+		]]>
 	</select>
 
 	<update id="update" parameterType="uservo">
@@ -37,12 +46,12 @@
 			<when test='password == ""'>
 				<![CDATA[
 				update user set name=#{name}, gender=#{gender} where id=#{id}
-				]]>			
+				]]>
 			</when>
 			<otherwise>
 				<![CDATA[
 				update user set name=#{name}, password=#{password}, gender=#{gender} where id=#{id}
-				]]>			
+				]]>
 			</otherwise>
 		</choose>
 	</update>
