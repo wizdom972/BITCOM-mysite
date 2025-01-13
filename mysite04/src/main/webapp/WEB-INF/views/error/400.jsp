@@ -10,9 +10,7 @@
 <title>Insert title here</title>
 </head>
 <body>
-	<h1>Exception Handler: Spring Controller</h1>
-	<pre style="color: #f00">
-		${errors }
-	</pre>
+	<h1>400 Bad Request</h1>
+	<p>잘못된 요청입니다.</p>
 </body>
 </html>

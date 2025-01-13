@@ -10,9 +10,7 @@
 <title>Insert title here</title>
 </head>
 <body>
-	<h1>Exception Handler: Spring Controller</h1>
-	<pre style="color: #f00">
-		${errors }
-	</pre>
+	<h1>404 Not Found</h1>
+	<p>요청을 찾을 수 없습니다.</p>
 </body>
 </html>

@@ -10,9 +10,7 @@
 <title>Insert title here</title>
 </head>
 <body>
-	<h1>Exception Handler: Spring Controller</h1>
-	<pre style="color: #f00">
-		${errors }
-	</pre>
+	<h1>500 Internal Server Error</h1>
+	<p>장애가 발생 했습니다.</p>
 </body>
 </html>
