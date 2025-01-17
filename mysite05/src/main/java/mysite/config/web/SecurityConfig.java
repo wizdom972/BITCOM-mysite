@@ -1,63 +1,67 @@
 package mysite.config.web;
 
-import java.util.List;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.method.support.HandlerMethodArgumentResolver;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
-import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.util.matcher.RegexRequestMatcher;
 
-import mysite.security.AuthInterceptor;
-import mysite.security.AuthUserHandlerMethodArgumentResolver;
-import mysite.security.LoginInterceptor;
-import mysite.security.LogoutInterceptor;
+import mysite.repository.UserRepository;
+import mysite.security.UserDetailsServiceImpl;
 
 @Configuration
-@EnableWebMvc
-public class SecurityConfig implements WebMvcConfigurer{
+@EnableWebSecurity
+public class SecurityConfig {
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {	
+    	
+    	http
+    	.formLogin((formLogin) -> {
+    		formLogin.loginPage("/user/login")
+    		.loginProcessingUrl("/user/auth")
+    		.usernameParameter("email")
+    		.passwordParameter("password")
+            .defaultSuccessUrl("/")
+            .failureUrl("/user/login?result=fail");
+    	})
+    	.authorizeHttpRequests((authorizeRequests) -> {
+    		// Access Control List(ACL)
+    		authorizeRequests
+    			.requestMatchers(new RegexRequestMatcher("^/user/update$", null))
+    			.authenticated()
+    			
+    			// 나머지는 통과
+    			.anyRequest().permitAll();
+    	});
+    	
+    	return http.build();
+    }
 	
-	// Argument Resolver
-	@Bean
-	public HandlerMethodArgumentResolver handlerMethodArgumentResolver() {
-		return new AuthUserHandlerMethodArgumentResolver();
-	}
-	
-	@Override
-	public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
-		resolvers.add(handlerMethodArgumentResolver());
-	}
-	
-	// Interceptors
-	@Bean
-	public LoginInterceptor loginInterceptor() {
-		return new LoginInterceptor();
-	}
-	
-	@Bean
-	public LogoutInterceptor logoutInterceptor() {
-		return new LogoutInterceptor();
-	}
-	
-	@Bean
-	public AuthInterceptor authInterceptor() {
-		return new AuthInterceptor();
-	}
-	
-	@Override
-	public void addInterceptors(InterceptorRegistry registry) {
-		registry
-			.addInterceptor(loginInterceptor())
-			.addPathPatterns("/user/auth");
-		
-		registry
-		.addInterceptor(logoutInterceptor())
-		.addPathPatterns("/user/logout");
-		
-		registry
-		.addInterceptor(authInterceptor())
-		.addPathPatterns("/user/**")
-		.excludePathPatterns("/user/auth", "/user/logout", "/assets/**");
-	}
+    @Bean
+    public AuthenticationManager authenticationManager(UserDetailsService userDetailsService, PasswordEncoder passwordEncode) {
+        DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
+        
+        authenticationProvider.setPasswordEncoder(passwordEncode);
+        authenticationProvider.setUserDetailsService(userDetailsService);
+        
+        return new ProviderManager(authenticationProvider);
+    }
+
+     @Bean
+     public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder(4); // 4 ~ 31
+     }
+
+     @Bean
+     public UserDetailsService userDetailsService(UserRepository userRepository) {
+        return new UserDetailsServiceImpl(userRepository);
+     }    
 }
