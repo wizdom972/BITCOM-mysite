@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import jakarta.validation.Valid;
-import mysite.security.Auth;
 import mysite.service.UserService;
 import mysite.vo.UserVo;
 
@@ -54,7 +53,6 @@ public class UserController {
 		return "user/login";
 	}
 	
-	@Auth
 	@RequestMapping(value="/update", method=RequestMethod.GET)
 	public String update(/* HttpSession session, */ Authentication authentication, Model model) {
 		// 1. HttpSession을 사용하는 방법 <- 별로 좋은 방법은 아님
@@ -75,7 +73,6 @@ public class UserController {
 		return "user/update";
 	}
 
-	@Auth
 	@RequestMapping(value="/update", method=RequestMethod.POST)
 	public String update(Authentication authentication, UserVo userVo) {
 		UserVo authUser = (UserVo) authentication.getPrincipal();	
