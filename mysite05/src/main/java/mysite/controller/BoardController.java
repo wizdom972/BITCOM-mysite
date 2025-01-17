@@ -3,6 +3,7 @@ package mysite.controller;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -12,7 +13,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import mysite.security.Auth;
-import mysite.security.AuthUser;
 import mysite.service.BoardService;
 import mysite.vo.BoardVo;
 import mysite.vo.UserVo;
@@ -49,17 +49,24 @@ public class BoardController {
 	@Auth
 	@RequestMapping("/delete/{no}")
 	public String delete(
-		@AuthUser UserVo authUser,
+		Authentication authentication,
 		@PathVariable("no") Long boardNo,
 		@RequestParam(value="p", required=true, defaultValue="1") Integer page,
 		@RequestParam(value="kwd", required=true, defaultValue="") String keyword) {		
+		UserVo authUser = (UserVo) authentication.getPrincipal();
+		
 		boardService.deleteContents(boardNo, authUser.getId());
 		return "redirect:/board?p=" + page + "&kwd=" + WebUtil.encodeURL(keyword, "UTF-8");
 	}
 	
 	@Auth
 	@RequestMapping("/modify/{no}")	
-	public String modify(@AuthUser UserVo authUser, @PathVariable("no") Long no, Model model) {
+	public String modify(
+			Authentication authentication, 
+			@PathVariable("no") Long no, 
+			Model model) {
+		UserVo authUser = (UserVo) authentication.getPrincipal();	
+		
 		BoardVo boardVo = boardService.getContents(no, authUser.getId());
 		model.addAttribute("boardVo", boardVo);
 		return "board/modify";
@@ -68,10 +75,12 @@ public class BoardController {
 	@Auth
 	@RequestMapping(value="/modify", method=RequestMethod.POST)	
 	public String modify(
-		@AuthUser UserVo authUser, 
+		Authentication authentication, 
 		BoardVo boardVo,
 		@RequestParam(value="p", required=true, defaultValue="1") Integer page,
 		@RequestParam(value="kwd", required=true, defaultValue="") String keyword) {		
+		UserVo authUser = (UserVo) authentication.getPrincipal();
+		
 		boardVo.setUserId(authUser.getId());
 		boardService.modifyContents(boardVo);
 		return "redirect:/board/view/" + boardVo.getNo() + 
@@ -88,11 +97,12 @@ public class BoardController {
 	@Auth
 	@RequestMapping(value="/write", method=RequestMethod.POST)	
 	public String write(
-		@AuthUser UserVo authUser,
+		Authentication authentication,
 		@ModelAttribute BoardVo boardVo,
 		@RequestParam(value="p", required=true, defaultValue="1") Integer page,
 		@RequestParam(value="kwd", required=true, defaultValue="") String keyword) {
-
+		UserVo authUser = (UserVo) authentication.getPrincipal();
+		
 		boardVo.setUserId(authUser.getId());
 		boardService.addContents(boardVo);
 		return	"redirect:/board?p=" + page + "&kwd=" + WebUtil.encodeURL(keyword, "UTF-8");
