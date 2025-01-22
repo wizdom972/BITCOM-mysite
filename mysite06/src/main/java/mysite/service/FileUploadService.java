@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
-@PropertySource("classpath:mysite/config/web/fileupload.properties")
+@PropertySource("classpath:config/fileupload.properties")
 public class FileUploadService {
 	
 	@Autowired
@@ -22,7 +22,7 @@ public class FileUploadService {
 	
 	public String restore(MultipartFile file) throws RuntimeException {
 		try {
-			File uploadDirectory = new File(env.getProperty("fileupload.uploadLoaction"));
+			File uploadDirectory = new File(env.getProperty("fileupload.uploadLocation"));
 			if(!uploadDirectory.exists() && !uploadDirectory.mkdirs()) {
 				return null; 
 			}
@@ -42,7 +42,7 @@ public class FileUploadService {
 			
 			byte[] data = file.getBytes();
 			
-			OutputStream os = new FileOutputStream(env.getProperty("fileupload.uploadLoaction") + "/" + saveFilename);
+			OutputStream os = new FileOutputStream(env.getProperty("fileupload.uploadLocation") + "/" + saveFilename);
 			os.write(data);
 			os.close();
 			
